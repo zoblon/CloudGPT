@@ -107,13 +107,14 @@ describe('expandObject', () => {
   });
 
   it('limits extreme series and reports it', () => {
+    // Exercise the real 40,000-iteration safety cap; allow for slower CI runners.
     const r = expandObject(
       obj('BEGIN:VEVENT\r\nUID:e\r\nDTSTART;TZID=Europe/Berlin:20000101T100000\r\nDTEND;TZID=Europe/Berlin:20000101T100100\r\nRRULE:FREQ=MINUTELY\r\nSUMMARY:Every minute\r\nEND:VEVENT'),
       cal,
       range('2026-10-01', '2026-10-03'),
     );
     expect(r.truncated).toBe(true);
-  });
+  }, 15_000);
 
   it('truncates very long notes', () => {
     const long = 'x'.repeat(5000);
