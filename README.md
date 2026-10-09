@@ -17,7 +17,7 @@ A private iCloud connector for ChatGPT, running on your Mac. Read calendars, con
 
 Download the Apple Silicon ZIP from [Releases](https://github.com/zoblon/CloudGPT/releases/latest), verify its checksum, unpack it separately and open **Install CloudGPT.command**. The installer detects an existing service and safely updates it; on a new Mac it runs setup and enables the background service at login. Use this same entry point for every release. See the [setup guide](chatgpt/README.md) for account requirements and the separate ChatGPT plugin setup. You need macOS, Node.js 20.11 or later, your own iCloud account and access to OpenAI's private tunnel feature. The Mac must stay awake and online with an available login Keychain.
 
-After installation, create your own private tunnel connection in ChatGPT. Account, workspace and mobile availability depend on OpenAI; verify them on each device.
+The installer then opens a local connection assistant. It checks tunnel readiness and the configured tunnel ID, supplies the ID and includes the CloudGPT plugin archive in the same download. In ChatGPT choose **Tunnel** and check that the field says **Tunnel-ID** before pasting. The assistant reports Mac readiness separately from the still-unverified ChatGPT connection. Account, workspace and mobile availability depend on OpenAI; verify them on each device.
 
 For an existing CloudGPT installation, the same **Install CloudGPT.command** backs up the complete previous runtime before replacement and restores it if the new tunnel does not become ready. Settings, credentials and tunnel association are preserved. Download and open the installer for each release; a GitHub release does not update another Mac automatically. The individual setup, update and service commands remain available for advanced/manual use.
 
@@ -35,7 +35,7 @@ Shared calendars and note folders require explicit naming. No mail sending, cale
 
 ## Plugin templates
 
-The cloud-plugin ZIP contains English instructions and branding, **without an app ID**. It is a template, not an already connected ChatGPT plugin. Create your own tunnel-backed app first, then build a locally bound wrapper with your own app ID as described in the [setup guide](chatgpt/README.md). Never reuse someone else's binding. The standalone Mac runtime does not need this wrapper to establish its tunnel connection.
+The cloud-plugin ZIP contains English instructions and branding, **without an app ID**. The same archive is included in the macOS download and offered by the connection assistant for **Upload plugin archive** in ChatGPT’s custom MCP dialog. It supplies branding and instructions; the **Tunnel** selection creates your own account connection. It cannot repair a deleted connector by itself. For updates keep and refresh the working connection. Advanced private wrapper builds are described in the [setup guide](chatgpt/README.md). Never reuse an unverified or deleted app binding.
 
 ## Development
 

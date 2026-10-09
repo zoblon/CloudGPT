@@ -7,6 +7,8 @@ import { configPath, dataDir, validateConfig } from './config.mjs';
 import { updateRuntime } from './runtime-update.mjs';
 import { launchAgentPlist, servicePaths, serviceLabel } from './service-config.mjs';
 import { runtimeContents as contents } from './install-flow.mjs';
+import { checkTunnel } from './connection-guide.mjs';
+import { startService, stopService } from './service-lifecycle.mjs';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const paths = servicePaths();
@@ -14,21 +16,19 @@ const domain = `gui/${process.getuid()}`;
 const target = `${domain}/${serviceLabel}`;
 const launchctl = (...args) => execFileSync('/bin/launchctl', args, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' });
 function registered() { try { launchctl('print', target); return true; } catch { return false; } }
-function stop() { if (registered()) launchctl('bootout', target); }
-function start() {
-  if (!existsSync(paths.agent)) throw new Error('Open Install at Login.command first.');
-  if (!registered()) launchctl('bootstrap', domain, paths.agent);
-}
+const healthFile = join(dataDir, 'health.url');
+const stop = () => stopService({ isRegistered: registered, bootout: () => launchctl('bootout', target), healthFile });
+const start = () => startService({ isRegistered: registered, bootstrap: () => launchctl('bootstrap', domain, paths.agent), agent: paths.agent, healthFile });
 async function ready() {
   try {
-    const url = readFileSync(join(dataDir, 'health.url'), 'utf8').trim();
-    if (!/^http:\/\/127\.0\.0\.1:\d+$/.test(url)) return false;
-    const result = await fetch(`${url}/readyz`, { redirect: 'error', signal: AbortSignal.timeout(1500) });
-    return result.ok;
+    const cfg = validateConfig(JSON.parse(readFileSync(configPath, 'utf8')));
+    await checkTunnel({ tunnelId: cfg.tunnelId, healthFile });
+    return true;
   } catch { return false; }
 }
 async function waitReady() {
-  for (let i = 0; i < 30; i++) { if (registered() && await ready()) return; await delay(1000); }
+  const deadline = Date.now() + 30000;
+  while (Date.now() < deadline) { if (registered() && await ready()) return; await delay(1000); }
   throw new Error('Service installed but not ready. Open Diagnose.command; Keychain approval may be required.');
 }
 try {
@@ -42,7 +42,7 @@ try {
       if (existsSync(node) && realpathSync(node) === realpathSync(process.execPath)) { cfg.nodePath = node; break; }
     }
     for (const file of contents) if (!existsSync(join(root, file))) throw new Error('Use the built CloudGPT package.');
-    stop();
+    await stop();
     for (const path of [paths.base, paths.runtime, paths.logs, dirname(paths.agent)]) mkdirSync(path, { recursive: true, mode: 0o700 });
     for (const path of [paths.base, paths.runtime, paths.logs]) chmodSync(path, 0o700);
     if (resolve(root) !== resolve(paths.runtime)) {
@@ -68,11 +68,11 @@ try {
   } else if (action === 'start') {
     start(); await waitReady(); console.log('CloudGPT runs in the background.');
   } else if (action === 'restart') {
-    stop(); start(); await waitReady(); console.log('CloudGPT restarted.');
+    await stop(); start(); await waitReady(); console.log('CloudGPT restarted.');
   } else if (action === 'stop') {
-    stop(); console.log('CloudGPT stopped. It will start again at the next Mac login.');
+    await stop(); console.log('CloudGPT stopped. It will start again at the next Mac login.');
   } else if (action === 'uninstall') {
-    stop(); if (existsSync(paths.agent)) unlinkSync(paths.agent);
+    await stop(); if (existsSync(paths.agent)) unlinkSync(paths.agent);
     console.log('Login service removed. Package, settings and Keychain entries are retained.');
   } else if (action === 'status') {
     if (!registered()) { console.log('CloudGPT background service is stopped or not installed.'); process.exitCode = 1; }

@@ -15,7 +15,7 @@ CloudGPT runs a background service on your Mac and connects it to your own ChatG
 3. Create a dedicated runtime API key with Tunnels Read + Use. Do not use an admin key or put credentials in chat, source files or shell arguments.
 4. Open **Install CloudGPT.command**. It checks the package and detects any existing login service. On a new Mac, enter account addresses, time zone, a private default calendar (or leave it empty), mode and tunnel ID. Paste the Apple app-specific password and OpenAI runtime key with Command-V, then press Enter. `input present` confirms hidden input. The two secrets are stored separately in the macOS login Keychain; other clients' credentials are not read. Empty secret input keeps an existing value.
 5. The same installer copies the runtime to Application Support, enables startup at Mac login, starts the background service and checks tunnel readiness. No separate setup, install-at-login or update command is needed. Stop an old manually started tunnel with Control-C before installing the service. If installation fails, use **Diagnose.command** and resolve access/Keychain errors. **Status.command** checks service and readiness. Completed valid setup is reused when you run the installer again; an invalid existing configuration is never silently replaced.
-6. In [ChatGPT Plugins](https://chatgpt.com/plugins), choose **Add custom MCP server**, name it CloudGPT, select **Tunnel** and your tunnel ID, then create/install it as a plugin. For this private stdio tunnel choose **No authentication**: the tunnel's OpenAI permissions and account association control access. Grant access only to your own account/workspace. There is no public unauthenticated iCloud endpoint.
+6. The installer opens a **local connection assistant** after checking the live tunnel and matching its ID against your settings. You can reopen and recheck with **Connect ChatGPT.command**. Follow its link to ChatGPT Plugins, choose **Add custom MCP server** and name it CloudGPT. Explicitly select **Tunnel**: the field must change to **Tunnel-ID**, not **Server-URL**. Copy the supplied ID and wait for ChatGPT to recognize the tunnel name. Choose **No authentication** for this private stdio connection. The assistant includes the unbound branding/skill ZIP for **Upload plugin archive** in the same dialog; no separate download or manual app ID is needed for this path. Review the warning, create the plugin and install it for your own account. Tunnel permissions and account association control access; there is no public unauthenticated iCloud endpoint.
 7. Start a new chat, select the plugin and test **List my calendars**. Configure write tools to require confirmation; use `readonly` if the client has no approval controls. Approval is a client setting and model instruction, not proof of an authenticated human approval at the server.
 8. On iPhone and iPad, select the same account/workspace and verify the connection separately in a new chat. A desktop test does not establish mobile availability.
 
@@ -23,9 +23,11 @@ macOS may ask to open a downloaded file, access Keychain or control an app. Chec
 
 ## Update an existing service
 
-Unpack the new ZIP separately and open **Install CloudGPT.command**, the same entry point used for initial setup. It detects the installed service and automatically runs the safe update without asking for credentials again. The updater stages the complete package, backs up the previous runtime under `~/Library/Application Support/CloudGPT/backups/`, replaces it, and checks tunnel readiness. It restores and checks the previous runtime if the candidate fails. Settings, mode, tunnel ID and Keychain entries are preserved. Review any Keychain prompt for the known helper. **Update.command** remains available for advanced/manual use.
+Unpack the new ZIP separately and open **Install CloudGPT.command**, the same entry point used for initial setup. It detects the installed service and automatically runs the safe update without asking for credentials again. The updater stages the complete package, backs up the previous runtime under `~/Library/Application Support/CloudGPT/backups/`, replaces it, and checks tunnel readiness. It restores and checks the previous runtime if the candidate fails. Settings, mode, tunnel ID and Keychain entries are preserved. Review any Keychain prompt for the known helper. **Update.command** is an alias for the same complete installer and connection handoff.
 
-Refresh the existing connection in ChatGPT, configure approval for new write tools and start a new chat. The installer updates the Mac service; the ChatGPT plugin logo and skill still require a separately updated package bound to your own app ID. Changes to the GitHub repository do not update your running Mac. A build on a different Mac cannot verify your installation.
+The installer checks the new local runtime and opens the connection assistant. **Keep and refresh the existing working ChatGPT connection**; configure approval for new write tools and start a new chat. Do not delete it for routine updates. Mac readiness is reported separately from ChatGPT installation. Changes to the GitHub repository do not update your running Mac, and a build cannot verify your account installation. If ChatGPT reports **Connector not found**, recreate the connection through the assistant. Reuploading an archive that points to the deleted app ID cannot fix that error.
+
+Restarts wait for the previous launchd job to be removed and discard its old health address before starting the replacement. Readiness checks match the running tunnel ID against the configuration.
 
 Updates hold an exclusive filesystem lock through readiness or recovery. After a crash, `.cloudgpt-update.lock` can remain under Application Support/CloudGPT. Verify that no updater is running before removing that lock and checking service status. Old runtime backups are not automatically pruned.
 
@@ -50,15 +52,21 @@ Reads never mark mail read. No sending, permanent mail deletion, contact/group d
 
 **Stop.command** stops the service until the next login; **Remove from Login.command** removes the login service while retaining package, settings and credentials. Disconnect the ChatGPT plugin and revoke the tunnel/runtime key if no longer needed. Remove only this service's Keychain entries and folders. Revoking an Apple app password can affect other clients using it; inspect shared backup folders before deleting them.
 
-## Optional cloud-plugin wrapper
+## Connection troubleshooting
 
-The released cloud-plugin ZIP is an **unbound template**. It cannot connect to someone else's account and is not ready to install as a connected plugin. After creating your own tunnel-backed app, find its app ID in your account and build the wrapper locally:
+If a `tunnel_…` value makes the URL field red, **Server URL is still selected**. Select **Tunnel** and verify the **Tunnel-ID** field label first. Do not turn the ID into a guessed `api.openai.com` URL: the control-plane address is not the MCP connection address. If discovery still fails in Tunnel mode, check the target ChatGPT account/workspace association and the operator’s Tunnels Read + Use permissions in Platform. A locally ready tunnel does not prove ChatGPT access.
+
+The connection assistant checks readiness, ID consistency and the included ZIP checksum without reading credentials. It also checks that the downloaded package matches the installed runtime version. Its generated HTML and ZIP live under `~/Library/Application Support/CloudGPT/connection/` (private filesystem permissions). The page contains the tunnel ID, never a key. It is an offline snapshot with a check time; reopen **Connect ChatGPT.command** to check again. It does not log into ChatGPT or claim account installation automatically. A real calendar read in a new ChatGPT conversation remains the acceptance test.
+
+## Advanced private cloud-plugin wrapper
+
+Normally use the archive supplied by the connection assistant in ChatGPT’s custom MCP dialog. The released cloud-plugin ZIP is an **unbound template**, not an account connection. If you separately maintain an existing private wrapper, first verify that its app ID still exists and works in your own ChatGPT account, then build locally:
 
 ```sh
 node scripts/build-cloud-plugin.mjs --app-id YOUR_APP_ID
 ```
 
-The result ends in `-bound.zip` and includes your own `.app.json`. Keep it private. The default `npm run build:cloud-plugin` produces the distributable template with no app binding. The wrapper supplies branding and a skill; it never replaces the Mac runtime. Refreshing MCP discovery does not upload that skill automatically.
+The result ends in `-bound.zip` and includes your own `.app.json`. Keep it private. The builder cannot verify ChatGPT ownership or existence of that app ID. Never copy a binding from an old ZIP without checking it; recreate a deleted connector first. The default `npm run build:cloud-plugin` produces the distributable template with no app binding. The wrapper supplies branding and a skill; it never replaces the Mac runtime. Refreshing MCP discovery does not upload that skill automatically.
 
 `chatgpt/plugin.json`, `mcp.json` and `skills/` also form a local stdio agent plugin; this local package alone cannot run on web/iOS. Tunnel connections are not sufficient for submission to a public ChatGPT plugin directory. Source publication does not change that.
 

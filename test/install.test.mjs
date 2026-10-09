@@ -21,7 +21,7 @@ function fixture({ configured = false, installed = false } = {}) {
   const credentials = join(base, 'synthetic-keychain.json');
   writeFileSync(credentials, JSON.stringify(configured || installed ? ['icloud', 'openai-runtime'] : []));
   mkdirSync(source);
-  for (const file of ['runtime.mjs', 'runtime-update.mjs', 'config.mjs', 'install.mjs', 'install-flow.mjs', 'secret-input.mjs', 'service-config.mjs', 'plugin.json', 'mcp.json', 'README.md', 'LICENSE']) writeFileSync(join(source, file), 'fixture');
+  for (const file of ['runtime.mjs', 'runtime-update.mjs', 'config.mjs', 'install.mjs', 'install-flow.mjs', 'connect.mjs', 'connection-guide.mjs', 'service-lifecycle.mjs', 'chatgpt-plugin.zip', 'chatgpt-plugin.zip.sha256', 'secret-input.mjs', 'service-config.mjs', 'plugin.json', 'mcp.json', 'README.md', 'LICENSE']) writeFileSync(join(source, file), 'fixture');
   for (const name of ['server', 'bin', 'assets', 'skills']) mkdirSync(join(source, name));
   mkdirSync(join(source, 'skills', 'icloud'));
   for (const file of ['server/index.mjs', 'bin/keychain', 'bin/tunnel-client', 'bin/cloudflared', 'assets/cloudgpt.png', 'skills/icloud/SKILL.md']) writeFileSync(join(source, file), 'fixture');

@@ -42,7 +42,7 @@ const INSTRUCTIONS = [
 export interface ServerOptions { name?: string; readOnly?: boolean; allowDeletion?: boolean; }
 
 export function createServer(cfg: Config, options: ServerOptions = {}): McpServer {
-  const identity = { name: 'iClaude', version: '0.4.2' };
+  const identity = { name: 'iClaude', version: '0.4.3' };
   const server = new McpServer({ ...identity, name: options.name ?? identity.name }, { instructions: INSTRUCTIONS });
   const dav = new CalDavGateway(cfg);
   registerCalendarTools(server, new CalendarService(cfg, dav));

@@ -66,8 +66,7 @@ try {
     if (!secretPresent(account)) throw new Error('Both credentials must be configured.');
   }
   console.log(fromInstaller ? '\nSettings saved. The installer will now start the background service and enable startup at Mac login.' : '\nSettings saved. Open Install CloudGPT.command to start the background service and enable startup at Mac login.');
-  console.log('In ChatGPT: Plugins → + → Add custom MCP server → Tunnel → your tunnel ID → Create as a plugin.');
-  console.log('Name: CloudGPT. For this private stdio connection choose No authentication: access is controlled by OpenAI tunnel permissions and account association.');
+  console.log('After the service starts, the installer opens the checked connection assistant. Reopen it with Connect ChatGPT.command.');
 } catch (error) {
   console.error(error instanceof Error ? error.message : 'Setup failed.');
   process.exitCode = 1;

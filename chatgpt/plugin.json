@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "cloudgpt",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Private access to iCloud calendars, contacts and mail, and Apple Reminders and Notes, through your Mac and your own OpenAI tunnel.",
   "author": {
     "name": "Tobi Rehkopf"

@@ -4,6 +4,7 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync, chmodSync } fro
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
+import { stageCloudPlugin } from './cloud-plugin-package.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const stage = join(root, 'build', 'chatgpt', 'cloudgpt');
@@ -15,10 +16,17 @@ rmSync(stage, { recursive: true, force: true });
 mkdirSync(join(stage, 'server'), { recursive: true });
 mkdirSync(join(stage, 'bin'), { recursive: true });
 mkdirSync(join(stage, 'assets'), { recursive: true });
-for (const file of ['plugin.json', 'mcp.json', 'config.mjs', 'runtime.mjs', 'runtime-update.mjs', 'install.mjs', 'install-flow.mjs', 'setup.mjs', 'secret-input.mjs', 'service.mjs', 'service-config.mjs', 'README.md']) cpSync(join(source, file), join(stage, file));
+for (const file of ['plugin.json', 'mcp.json', 'config.mjs', 'runtime.mjs', 'runtime-update.mjs', 'install.mjs', 'install-flow.mjs', 'connect.mjs', 'connection-guide.mjs', 'service-lifecycle.mjs', 'setup.mjs', 'secret-input.mjs', 'service.mjs', 'service-config.mjs', 'README.md']) cpSync(join(source, file), join(stage, file));
 cpSync(join(root, 'LICENSE'), join(stage, 'LICENSE'));
 cpSync(join(source, 'skills'), join(stage, 'skills'), { recursive: true });
 cpSync(join(root, 'assets', 'cloudgpt.png'), join(stage, 'assets', 'cloudgpt.png'));
+// Carry the clean cloud wrapper in the same download. Never copy an account binding.
+const cloudStage = join(root, 'build', 'chatgpt', 'cloud-template', 'cloudgpt');
+const cloudManifest = stageCloudPlugin({ source: join(root, 'cloud-plugin', 'cloudgpt'), stage: cloudStage, license: join(root, 'LICENSE') });
+if (cloudManifest.version !== manifest.version) throw new Error('Runtime and cloud-plugin versions differ.');
+const cloudArchive = join(stage, 'chatgpt-plugin.zip');
+execFileSync('/usr/bin/zip', ['-qr', cloudArchive, 'cloudgpt'], { cwd: dirname(cloudStage) });
+writeFileSync(cloudArchive + '.sha256', createHash('sha256').update(readFileSync(cloudArchive)).digest('hex') + '  chatgpt-plugin.zip\n');
 await build({
   entryPoints: [join(root, 'src', 'chatgpt.ts')], outfile: join(stage, 'server', 'index.mjs'),
   bundle: true, platform: 'node', target: 'node20', format: 'esm',
@@ -51,10 +59,11 @@ for (const name of ['keychain', 'tunnel-client', 'cloudflared']) chmodSync(join(
 writeFileSync(join(stage, 'bin', 'PROVENANCE.json'), JSON.stringify({ archive, sha256: sha, source: `https://github.com/openai/tunnel-client/releases/tag/${/^tunnel-client-(v.+)-darwin-/.exec(archive)[1]}`, builtFor: `darwin-${arch}` }, null, 2) + '\n');
 for (const [name, script, action] of [
   ['Install CloudGPT.command', 'install.mjs', ''],
-  ['Setup.command', 'setup.mjs', ''], ['Update.command', 'service.mjs', 'update'], ['Start.command', 'service.mjs', 'start'],
+  ['Connect ChatGPT.command', 'connect.mjs', ''],
+  ['Setup.command', 'setup.mjs', ''], ['Update.command', 'install.mjs', ''], ['Start.command', 'service.mjs', 'start'],
   ['Diagnose.command', 'runtime.mjs', 'doctor'], ['Status.command', 'service.mjs', 'status'], ['Install at Login.command', 'service.mjs', 'install'], ['Restart.command', 'service.mjs', 'restart'], ['Stop.command', 'service.mjs', 'stop'], ['Remove from Login.command', 'service.mjs', 'uninstall'],
 ]) {
-  const command = `#!/bin/sh\nset -eu\nPATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"\nexport PATH\ncd "$(dirname "$0")"\nnode "${script}" ${action}\n`;
+  const command = `#!/bin/sh\nset -eu\nPATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"\nexport PATH\ncd "$(dirname "$0")"\nnode "${script}" ${action} "$@"\n`;
   writeFileSync(join(stage, name), command, { mode: 0o755 });
 }
 mkdirSync(join(root, 'dist'), { recursive: true });

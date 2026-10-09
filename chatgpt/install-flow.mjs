@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { configPath, validateConfig } from './config.mjs';
 import { servicePaths } from './service-config.mjs';
 
-export const runtimeContents = ['runtime.mjs', 'runtime-update.mjs', 'config.mjs', 'install.mjs', 'install-flow.mjs', 'setup.mjs', 'secret-input.mjs', 'service.mjs', 'service-config.mjs', 'plugin.json', 'mcp.json', 'README.md', 'LICENSE', 'server', 'bin', 'assets', 'skills'];
+export const runtimeContents = ['runtime.mjs', 'runtime-update.mjs', 'config.mjs', 'install.mjs', 'install-flow.mjs', 'connect.mjs', 'connection-guide.mjs', 'service-lifecycle.mjs', 'chatgpt-plugin.zip', 'chatgpt-plugin.zip.sha256', 'setup.mjs', 'secret-input.mjs', 'service.mjs', 'service-config.mjs', 'plugin.json', 'mcp.json', 'README.md', 'LICENSE', 'server', 'bin', 'assets', 'skills'];
 
 /** A downloaded package chooses the safe update path before any setup prompts. */
 export async function installPackage({ source, configFile = configPath, paths = servicePaths() }) {
