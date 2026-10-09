@@ -1,0 +1,32 @@
+name: CloudGPT CI
+
+on:
+  push:
+    branches: [main, 'codex/**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm test
+      - name: Get pinned official tunnel client
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TUNNEL_ARCH=$(node -p "process.arch === 'arm64' ? 'arm64' : 'amd64'")
+          gh release download v0.0.16 --repo openai/tunnel-client --pattern "tunnel-client-v0.0.16-darwin-${TUNNEL_ARCH}.zip" --pattern SHA256SUMS.txt --dir build/tunnel-client
+      - run: npm run build:chatgpt
+      - name: Verify standalone bundled MCP protocol and permissions
+        run: CLOUDGPT_TEST_BUNDLE=build/chatgpt/cloudgpt/server/index.mjs npm test -- test/chatgpt.test.mjs
+      - run: npm run build:cloud-plugin

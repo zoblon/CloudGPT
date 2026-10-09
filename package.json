@@ -1,0 +1,43 @@
+{
+  "name": "cloudgpt",
+  "version": "0.4.1",
+  "private": true,
+  "description": "Private iCloud access for ChatGPT through a macOS background service",
+  "type": "module",
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "scripts": {
+    "feasibility": "tsx --env-file=.env scripts/feasibility.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "dev": "tsx --env-file=.env src/stdio.ts",
+    "build:mcpb": "node scripts/build-mcpb.mjs",
+    "build:chatgpt": "node scripts/build-chatgpt.mjs",
+    "imap-capabilities": "tsx --env-file=.env scripts/imap-capabilities.ts",
+    "build:cloud-plugin": "node scripts/build-cloud-plugin.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.3.1",
+    "ical.js": "^2.2.1",
+    "imapflow": "^2.2.11",
+    "luxon": "^3.7.2",
+    "mailparser": "^3.9.36",
+    "tsdav": "^2.4.0",
+    "turndown": "^7.2.4",
+    "zod": "^4.6.5",
+    "unpdf": "^1.8.1"
+  },
+  "devDependencies": {
+    "@anthropic-ai/mcpb": "^2.1.2",
+    "@types/luxon": "^3.7.6",
+    "@types/mailparser": "^3.9.0",
+    "@types/node": "^26.6.4",
+    "@types/turndown": "^5.0.6",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  },
+  "license": "MIT"
+}

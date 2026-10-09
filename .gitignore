@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+*.mcpb
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+# Never commit archives, credentials or personal ChatGPT app bindings.
+*.zip
+.app.json

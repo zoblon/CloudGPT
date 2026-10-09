@@ -1,0 +1,32 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "cloudgpt",
+  "version": "0.4.1",
+  "description": "Private access to iCloud calendars, contacts and mail, and Apple Reminders and Notes, through your Mac and your own OpenAI tunnel.",
+  "author": {
+    "name": "Tobi Rehkopf"
+  },
+  "repository": "https://github.com/zoblon/CloudGPT",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "CloudGPT",
+        "shortDescription": "Your iCloud, connected",
+        "longDescription": "Connect ChatGPT to your iCloud calendars, contacts, mail, reminders and notes through your Mac. The service runs at login. No mail sending, permanent mail deletion or calendar invitations. Configure approval for write tools. Reminders and Notes require local macOS Automation permission. Independent project; not affiliated with Apple or OpenAI.",
+        "developerName": "Tobi Rehkopf",
+        "category": "Productivity",
+        "capabilities": [
+          "Read",
+          "Write"
+        ],
+        "defaultPrompt": "Show my appointments for tomorrow and summarize my unread iCloud mail.",
+        "logo": "./assets/cloudgpt.png",
+        "composerIcon": "./assets/cloudgpt.png",
+        "logoDark": "./assets/cloudgpt.png",
+        "composerIconDark": "./assets/cloudgpt.png",
+        "websiteURL": "https://github.com/zoblon/CloudGPT"
+      }
+    }
+  },
+  "homepage": "https://github.com/zoblon/CloudGPT"
+}
