@@ -68,7 +68,7 @@ describe('MCP protocol and permissions without iCloud network calls', () => {
   it('preserves the existing Claude identity and all original tools', async () => {
     const c = client('standard', resolve('node_modules/.bin/tsx'), ['src/stdio.ts']);
     const init = await initialize(c);
-    expect(init.result.serverInfo).toEqual({ name: 'iClaude', version: '0.4.1' });
+    expect(init.result.serverInfo).toEqual({ name: 'iClaude', version: '0.4.2' });
     const r = await c.request('tools/list');
     expect(r.result.tools.map(t => t.name)).toEqual(expect.arrayContaining(['create_event', 'create_draft', 'delete_event', 'trash_message']));
   });
