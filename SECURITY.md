@@ -4,7 +4,7 @@ CloudGPT handles iCloud credentials and personal data, so security reports are w
 
 ## Reporting a vulnerability
 
-Please report security problems privately via [GitHub security advisories](https://github.com/zoblon/CloudGPT/security/advisories/new), not as a public issue. Describe the problem and how to reproduce it with made-up data. Never include real passwords or personal content.
+If GitHub offers **Report a vulnerability** in the Security tab, use that private channel. Private vulnerability reporting is currently not enabled for this repository. Until a private channel is available, open an issue titled **Private security contact request** with no technical details and wait for the maintainer to arrange private disclosure. Do not publish exploit details, real passwords or personal content in an issue. Once a private channel is established, explain the problem and reproduction steps using made-up data.
 
 You will get an answer as soon as possible. This is a one-person project, so there is no fixed response time.
 
