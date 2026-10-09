@@ -1,6 +1,6 @@
 {
   "name": "cloudgpt",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "private": true,
   "description": "Private iCloud access for ChatGPT through a macOS background service",
   "type": "module",

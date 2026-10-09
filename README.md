@@ -15,11 +15,11 @@ A private iCloud connector for ChatGPT, running on your Mac. Read calendars, con
 
 ## Install
 
-Download the Apple Silicon ZIP from [Releases](https://github.com/zoblon/CloudGPT/releases/latest), verify its checksum, and follow the [setup guide](chatgpt/README.md). You need macOS, Node.js 20.11 or later, your own iCloud account and access to OpenAI's private tunnel feature. The Mac must stay awake and online with an available login Keychain.
+Download the Apple Silicon ZIP from [Releases](https://github.com/zoblon/CloudGPT/releases/latest), verify its checksum, unpack it separately and open **Install CloudGPT.command**. The installer detects an existing service and safely updates it; on a new Mac it runs setup and enables the background service at login. Use this same entry point for every release. See the [setup guide](chatgpt/README.md) for account requirements and the separate ChatGPT plugin setup. You need macOS, Node.js 20.11 or later, your own iCloud account and access to OpenAI's private tunnel feature. The Mac must stay awake and online with an available login Keychain.
 
-Open **Setup.command**, then **Install at Login.command**. Create your own private tunnel connection in ChatGPT. Account, workspace and mobile availability depend on OpenAI; verify them on each device.
+After installation, create your own private tunnel connection in ChatGPT. Account, workspace and mobile availability depend on OpenAI; verify them on each device.
 
-For an existing CloudGPT installation, unpack the new ZIP in a separate folder and open **Update.command**. The complete previous runtime is backed up before replacement and restored if the new tunnel does not become ready. Settings, credentials and tunnel association are preserved. Updates are manual; a GitHub release does not update another Mac automatically.
+For an existing CloudGPT installation, the same **Install CloudGPT.command** backs up the complete previous runtime before replacement and restores it if the new tunnel does not become ready. Settings, credentials and tunnel association are preserved. Download and open the installer for each release; a GitHub release does not update another Mac automatically. The individual setup, update and service commands remain available for advanced/manual use.
 
 ## Access modes
 

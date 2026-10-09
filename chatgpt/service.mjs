@@ -6,9 +6,9 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { configPath, dataDir, validateConfig } from './config.mjs';
 import { updateRuntime } from './runtime-update.mjs';
 import { launchAgentPlist, servicePaths, serviceLabel } from './service-config.mjs';
+import { runtimeContents as contents } from './install-flow.mjs';
 
 const root = dirname(fileURLToPath(import.meta.url));
-const contents = ['runtime.mjs', 'runtime-update.mjs', 'config.mjs', 'setup.mjs', 'secret-input.mjs', 'service.mjs', 'service-config.mjs', 'plugin.json', 'mcp.json', 'README.md', 'LICENSE', 'server', 'bin', 'assets', 'skills'];
 const paths = servicePaths();
 const domain = `gui/${process.getuid()}`;
 const target = `${domain}/${serviceLabel}`;

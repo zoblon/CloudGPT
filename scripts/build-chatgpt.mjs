@@ -15,7 +15,7 @@ rmSync(stage, { recursive: true, force: true });
 mkdirSync(join(stage, 'server'), { recursive: true });
 mkdirSync(join(stage, 'bin'), { recursive: true });
 mkdirSync(join(stage, 'assets'), { recursive: true });
-for (const file of ['plugin.json', 'mcp.json', 'config.mjs', 'runtime.mjs', 'runtime-update.mjs', 'setup.mjs', 'secret-input.mjs', 'service.mjs', 'service-config.mjs', 'README.md']) cpSync(join(source, file), join(stage, file));
+for (const file of ['plugin.json', 'mcp.json', 'config.mjs', 'runtime.mjs', 'runtime-update.mjs', 'install.mjs', 'install-flow.mjs', 'setup.mjs', 'secret-input.mjs', 'service.mjs', 'service-config.mjs', 'README.md']) cpSync(join(source, file), join(stage, file));
 cpSync(join(root, 'LICENSE'), join(stage, 'LICENSE'));
 cpSync(join(source, 'skills'), join(stage, 'skills'), { recursive: true });
 cpSync(join(root, 'assets', 'cloudgpt.png'), join(stage, 'assets', 'cloudgpt.png'));
@@ -50,6 +50,7 @@ for (const name of ['tunnel-client', 'cloudflared', 'cloudflared-manifest.json',
 for (const name of ['keychain', 'tunnel-client', 'cloudflared']) chmodSync(join(stage, 'bin', name), 0o755);
 writeFileSync(join(stage, 'bin', 'PROVENANCE.json'), JSON.stringify({ archive, sha256: sha, source: `https://github.com/openai/tunnel-client/releases/tag/${/^tunnel-client-(v.+)-darwin-/.exec(archive)[1]}`, builtFor: `darwin-${arch}` }, null, 2) + '\n');
 for (const [name, script, action] of [
+  ['Install CloudGPT.command', 'install.mjs', ''],
   ['Setup.command', 'setup.mjs', ''], ['Update.command', 'service.mjs', 'update'], ['Start.command', 'service.mjs', 'start'],
   ['Diagnose.command', 'runtime.mjs', 'doctor'], ['Status.command', 'service.mjs', 'status'], ['Install at Login.command', 'service.mjs', 'install'], ['Restart.command', 'service.mjs', 'restart'], ['Stop.command', 'service.mjs', 'stop'], ['Remove from Login.command', 'service.mjs', 'uninstall'],
 ]) {
