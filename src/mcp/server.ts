@@ -1,3 +1,7 @@
+import { join } from 'node:path';
+import { homedir } from 'node:os';
+import { DraftRevisionService } from '../core/mail/revision.js';
+import { registerDraftRevisionTools } from './draftRevisionTools.js';
 import { McpServer } from '@modelcontextprotocol/server';
 import type { Config } from '../core/config.js';
 import { CalDavGateway } from '../core/calendar/caldav.js';
@@ -54,6 +58,7 @@ export function createServer(cfg: Config, options: ServerOptions = {}): McpServe
   const mail = new MailService(cfg, imap);
   registerMailTools(server, mail, new AttachmentService(cfg, imap));
   if (!options.readOnly) registerDraftTools(server, new DraftService(cfg, imap, imap, () => mail.mailboxes()));
+  registerDraftRevisionTools(server, new DraftRevisionService(cfg.mailUser, imap, imap, new BackupStore({ dir: join(homedir(), 'Library', 'Application Support', 'icloud-mcp', 'draft-revisions'), zone: cfg.timezone, ext: 'eml.b64', what: 'mail draft', failure: 'No revised draft was created.' })), options.readOnly ?? false);
   if (!options.readOnly && (options.allowDeletion ?? true)) registerTrashTools(server, new TrashService(imap, () => mail.mailboxes()));
   if (!options.readOnly) registerImportTools(server, new InvitationImportService(cfg, imap, dav));
   // Apple Reminders and Notes are controlled on this Mac with JXA (osascript); one runner, one script at a time.

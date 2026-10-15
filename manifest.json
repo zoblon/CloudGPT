@@ -188,6 +188,14 @@
     {
       "name": "create_note",
       "description": "Create a new note (never changes, moves or deletes existing notes)"
+    },
+    {
+      "name": "inspect_draft_revision",
+      "description": "Read a complete draft snapshot and revision hash without changing or sending mail."
+    },
+    {
+      "name": "create_draft_revision",
+      "description": "Create a revised draft copy with a verified raw backup; preserve attachments, reply headers and original."
     }
   ],
   "tools_generated": false,
