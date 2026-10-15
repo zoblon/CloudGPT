@@ -54,3 +54,7 @@ The macOS build needs Swift and one official tunnel-client archive for your CPU 
 Credentials stay in the macOS Keychain. Requested tool results pass through OpenAI to your authorized ChatGPT context. Backups may contain personal data. See [Privacy](PRIVACY.md), [Security](SECURITY.md) and [MIT License](LICENSE).
 
 CloudGPT is an independent project and is not affiliated with, endorsed by or sponsored by Apple or OpenAI. iCloud and macOS are trademarks of Apple Inc.; ChatGPT and GPT are trademarks of OpenAI. The new cloud mark was generated with AI for this project; it is not Apple's iCloud logo or OpenAI's logo. Older private versions used Apple-derived artwork and are not the source of the public project's artwork. See [Branding](docs/BRANDING.md).
+
+### Draft revision copies (development)
+
+See [draft revisions](docs/proposals/draft-revisions.md) for the new inspection/hash workflow, verified raw backups and supported MIME forms. Revisions create a new draft and keep the original. Nothing is sent. HTML/alternative body edits and unsafe sources are refused. This path still needs isolated iCloud/Apple Mail validation before release.
