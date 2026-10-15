@@ -12,12 +12,12 @@ const SAFE_URL = /^(?:https?:\/\/[^\s<>"'`]+|mailto:[^\s<>"'`]+)$/i;
 /** Inline formatting on an already escaped line: `code`, **bold**, *italic*, [text](https://link). */
 function inline(escaped: string): string {
   const codes: string[] = [];
-  // code spans first and set aside, so nothing inside them is formatted
-  let t = escaped.replace(/`([^`]+)`/g, (_m, c: string) => `\u0000${codes.push(`<tt>${c}</tt>`) - 1}\u0000`);
-  t = t.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, text: string, url: string) => {
-    // the URL was escaped with the text: undo only the ampersand so that it can be checked
-    const raw = url.replace(/&amp;/g, '&');
-    return SAFE_URL.test(raw) ? `<a href="${escapeHtml(raw)}">${text}</a>` : `${text} (${url})`;
+  // Protect complete code spans and links before applying emphasis. Link labels
+  // are formatted separately so URL punctuation can never become markup.
+  let t = escaped.replace(/\u0000/g, '&#0;').replace(/`([^`]+)`|\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, code: string | undefined, text: string | undefined, url: string | undefined) => {
+    if (code !== undefined) return `\u0000${codes.push(`<tt>${code}</tt>`) - 1}\u0000`;
+    const raw = url!.replace(/&amp;/g, '&');
+    return SAFE_URL.test(raw) ? `\u0000${codes.push(`<a href="${escapeHtml(raw)}">${inline(text!)}</a>`) - 1}\u0000` : `${text} (${url})`;
   });
   t = t.replace(/\*\*([^*]+)\*\*|__([^_]+)__/g, (_m, a: string | undefined, b: string | undefined) => `<b>${a ?? b}</b>`);
   t = t.replace(/(^|[^*\w])\*([^*\s][^*]*)\*(?!\*)|(^|[^_\w])_([^_\s][^_]*)_(?![_\w])/g, (_m, p1: string | undefined, a: string | undefined, p2: string | undefined, b: string | undefined) =>
@@ -66,6 +66,7 @@ export function markdownToHtml(md: string): string {
     } else if (!line.trim()) {
       flushPara();
       flushList();
+      if (out.length && out.at(-1) !== '<div><br></div>') out.push('<div><br></div>');
     } else {
       flushList();
       para.push(line);
@@ -73,13 +74,14 @@ export function markdownToHtml(md: string): string {
   }
   flushPara();
   flushList();
+  if (out.at(-1) === '<div><br></div>') out.pop();
   return out.join('');
 }
 
 /** Plain text to HTML: line breaks stay, nothing else is interpreted. */
 export function plainToHtml(text: string): string {
   const paras = text.replace(/\r\n?/g, '\n').split(/\n{2,}/);
-  return paras.map((p) => `<div>${p.split('\n').map(escapeHtml).join('<br>') || '<br>'}</div>`).join('');
+  return paras.map((p) => `<div>${p.split('\n').map(escapeHtml).join('<br>') || '<br>'}</div>`).join('<div><br></div>');
 }
 
 /** The body of a new note: the title as the first line (Notes takes the title from it), then the text. */

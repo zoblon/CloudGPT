@@ -8,7 +8,7 @@ const cfg = { appleId: 'test@example.com', mailUser: 'test@icloud.com', timezone
 const children = [];
 afterEach(() => { for (const child of children.splice(0)) child.kill('SIGTERM'); });
 
-function client(mode, entry = process.env.CLOUDGPT_TEST_BUNDLE ? process.execPath : resolve('node_modules/.bin/tsx'), args = process.env.CLOUDGPT_TEST_BUNDLE ? [resolve(process.env.CLOUDGPT_TEST_BUNDLE)] : ['src/chatgpt.ts']) {
+function client(mode, entry = process.execPath, args = process.env.CLOUDGPT_TEST_BUNDLE ? [resolve(process.env.CLOUDGPT_TEST_BUNDLE)] : ['--import', 'tsx', 'src/chatgpt.ts']) {
   const child = spawn(entry, args, { env: {
     PATH: process.env.PATH, HOME: process.env.HOME,
     ICLOUD_APPLE_ID: cfg.appleId, ICLOUD_MAIL_USER: cfg.mailUser,
@@ -67,7 +67,7 @@ describe('ChatGPT configuration and tunnel boundary', () => {
 
 describe('MCP protocol and permissions without iCloud network calls', () => {
   it('preserves the existing Claude identity and all original tools', async () => {
-    const c = client('standard', resolve('node_modules/.bin/tsx'), ['src/stdio.ts']);
+    const c = client('standard', process.execPath, ['--import', 'tsx', 'src/stdio.ts']);
     const init = await initialize(c);
     expect(init.result.serverInfo).toEqual({ name: 'iClaude', version: JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version });
     const r = await c.request('tools/list');
@@ -85,18 +85,23 @@ describe('MCP protocol and permissions without iCloud network calls', () => {
     for (const name of ['create_event', 'update_event', 'create_draft', 'create_contact', 'update_contact', 'import_invitation', 'move_message', 'set_message_flags', 'create_reminder', 'update_reminder', 'complete_reminder', 'create_note']) expect(names.includes(name)).toBe(mode !== 'readonly');
     for (const name of ['delete_event', 'trash_message']) expect(names.includes(name)).toBe(mode === 'full');
     expect(names).toEqual(expect.arrayContaining(['read_attachment', 'list_contact_groups', 'upcoming_contact_dates', 'list_reminder_lists', 'list_reminders', 'search_reminders', 'list_note_folders', 'list_notes', 'search_notes', 'get_note']));
-    expect(names).toHaveLength(mode === 'readonly' ? 22 : mode === 'standard' ? 34 : 36);
+    const manifestNames = JSON.parse(readFileSync('manifest.json', 'utf8')).tools.map(t => t.name);
+    const revisionReads = ['inspect_note_revision', 'inspect_draft_revision'].filter(n => manifestNames.includes(n));
+    const revisionWrites = ['create_note_revision', 'create_draft_revision'].filter(n => manifestNames.includes(n));
+    expect(names).toEqual(expect.arrayContaining(revisionReads));
+    for (const name of revisionWrites) expect(names.includes(name)).toBe(mode !== 'readonly');
+    expect(names).toHaveLength((mode === 'readonly' ? 22 : mode === 'standard' ? 34 : 36) + revisionReads.length + (mode === 'readonly' ? 0 : revisionWrites.length));
     expect(names).not.toEqual(expect.arrayContaining(['send_message']));
     expect(names.some(n => /send|expunge/.test(n))).toBe(false);
     for (const tool of r.result.tools) {
       expect(tool.inputSchema.type).toBe('object');
       expect(tool.outputSchema).toBeTruthy();
-      expect(tool.annotations.readOnlyHint).toBe(mode === 'readonly' ? true : !['create_event', 'update_event', 'delete_event', 'create_draft', 'trash_message', 'create_contact', 'update_contact', 'import_invitation', 'move_message', 'set_message_flags', 'create_reminder', 'update_reminder', 'complete_reminder', 'create_note'].includes(tool.name));
+      expect(tool.annotations.readOnlyHint).toBe(mode === 'readonly' ? true : !['create_event', 'update_event', 'delete_event', 'create_draft', 'trash_message', 'create_contact', 'update_contact', 'import_invitation', 'move_message', 'set_message_flags', 'create_reminder', 'update_reminder', 'complete_reminder', 'create_note', ...revisionWrites].includes(tool.name));
     }
     expect((await c.request('ping')).error).toBeUndefined();
     expect(c.stderr()).not.toContain('fake-password-only-for-tests');
   });
-  it.each([['readonly', 'create_event'], ['readonly', 'create_contact'], ['readonly', 'update_contact'], ['readonly', 'create_reminder'], ['readonly', 'update_reminder'], ['readonly', 'complete_reminder'], ['readonly', 'create_note'], ['readonly', 'move_message'], ['readonly', 'set_message_flags'], ['readonly', 'import_invitation'], ['standard', 'delete_event'], ['standard', 'trash_message']])('rejects a direct call to an unavailable tool: %s/%s', async (mode, name) => {
+  it.each([['readonly', 'create_event'], ['readonly', 'create_contact'], ['readonly', 'update_contact'], ['readonly', 'create_reminder'], ['readonly', 'update_reminder'], ['readonly', 'complete_reminder'], ['readonly', 'create_note'], ['readonly', 'create_note_revision'], ['readonly', 'create_draft_revision'], ['readonly', 'move_message'], ['readonly', 'set_message_flags'], ['readonly', 'import_invitation'], ['standard', 'delete_event'], ['standard', 'trash_message']])('rejects a direct call to an unavailable tool: %s/%s', async (mode, name) => {
     const c = client(mode); await initialize(c);
     const r = await c.request('tools/call', { name, arguments: {} });
     expect(Boolean(r.error) || r.result?.isError === true).toBe(true);
