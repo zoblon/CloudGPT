@@ -1,3 +1,7 @@
+import { join } from 'node:path';
+import { homedir } from 'node:os';
+import { NoteRevisionService, jxaNoteRevisionReader } from '../core/notes/revision.js';
+import { registerNoteRevisionTools } from './noteRevisionTools.js';
 import { McpServer } from '@modelcontextprotocol/server';
 import type { Config } from '../core/config.js';
 import { CalDavGateway } from '../core/calendar/caldav.js';
@@ -60,6 +64,7 @@ export function createServer(cfg: Config, options: ServerOptions = {}): McpServe
   const runner = new OsascriptRunner();
   registerReminderTools(server, new ReminderService(cfg, new JxaReminders(runner)), { readOnly: options.readOnly ?? false });
   registerNoteTools(server, new NoteService(cfg, new JxaNotes(runner)), { readOnly: options.readOnly ?? false });
+  registerNoteRevisionTools(server, new NoteRevisionService(jxaNoteRevisionReader(runner), new JxaNotes(runner), new BackupStore({ dir: join(homedir(), 'Library', 'Application Support', 'icloud-mcp', 'note-revisions'), zone: cfg.timezone, ext: 'json', what: 'note export', failure: 'No revised copy was created.' })), options.readOnly ?? false);
   if (!options.readOnly) registerOrganizeTools(
     server,
     new MoveService(imap, () => mail.mailboxes(), (ref) => mail.resolveMailbox(ref), (path, mid) => imap.findRelated(path, [mid], 10)),

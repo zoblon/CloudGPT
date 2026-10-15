@@ -188,6 +188,14 @@
     {
       "name": "create_note",
       "description": "Create a new note (never changes, moves or deletes existing notes)"
+    },
+    {
+      "name": "inspect_note_revision",
+      "description": "Inspect a complete bounded note HTML export and snapshot hash for a revision copy."
+    },
+    {
+      "name": "create_note_revision",
+      "description": "Create a revised HTML-export copy with targeted replacements and a verified backup; original unchanged."
     }
   ],
   "tools_generated": false,

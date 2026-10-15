@@ -54,7 +54,7 @@ export class JxaNotes implements NoteBackend {
   }
   async create(grant: NoteGrant, html: string) {
     if (!NoteGrant.isValid(grant)) throw new Error('Write access without a grant');
-    return this.runner.run(notesCreate, { folderId: grant.folderId, folderName: grant.folder, html }, createOut).catch(reword);
+    return this.runner.run(notesCreate, { folderId: grant.folderId, folderName: grant.folder, shared: grant.shared, html }, createOut).catch(reword);
   }
 }
 
