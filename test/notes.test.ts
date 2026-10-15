@@ -49,8 +49,8 @@ describe('Markdown to Notes HTML', () => {
   it('converts headings, lists, emphasis, code and safe links', () => {
     const html = markdownToHtml('# Title\n\nSome **bold** and *italic* and `code <b>`.\nSecond line\n\n- one\n- two\n\n1. first\n2. second\n\n## Sub\n[Docs](https://example.com/a?b=1&c=2)\n\n```\nlet x = "<y>";\n```');
     expect(html).toBe(
-      '<h2>Title</h2><div>Some <b>bold</b> and <i>italic</i> and <tt>code &lt;b&gt;</tt>.<br>Second line</div><ul><li>one</li><li>two</li></ul><ol><li>first</li><li>second</li></ol>' +
-        '<h3>Sub</h3><div><a href="https://example.com/a?b=1&amp;c=2">Docs</a></div><div><tt>let x = &quot;&lt;y&gt;&quot;;</tt></div>',
+      '<h2>Title</h2><div><br></div><div>Some <b>bold</b> and <i>italic</i> and <tt>code &lt;b&gt;</tt>.<br>Second line</div><div><br></div><ul><li>one</li><li>two</li></ul><div><br></div><ol><li>first</li><li>second</li></ol>' +
+        '<div><br></div><h3>Sub</h3><div><a href="https://example.com/a?b=1&amp;c=2">Docs</a></div><div><br></div><div><tt>let x = &quot;&lt;y&gt;&quot;;</tt></div>',
     );
   });
 
@@ -65,7 +65,7 @@ describe('Markdown to Notes HTML', () => {
   });
 
   it('puts the title first as an h1 and keeps plain text line breaks', () => {
-    expect(noteHtml(' Shopping ', 'milk\neggs\n\nbread', 'plain')).toBe('<div><h1>Shopping</h1></div><div>milk<br>eggs</div><div>bread</div>');
+    expect(noteHtml(' Shopping ', 'milk\neggs\n\nbread', 'plain')).toBe('<div><h1>Shopping</h1></div><div>milk<br>eggs</div><div><br></div><div>bread</div>');
     expect(noteHtml('Only a title', '', 'markdown')).toBe('<div><h1>Only a title</h1></div>');
     expect(() => noteHtml('T', 'x'.repeat(50_001), 'plain')).toThrow(/too long/);
   });
@@ -160,3 +160,18 @@ describe('create_note', () => {
     expect(seen).toEqual([['notesCreate', { folderId: 'f2', folderName: 'iClaude Test', html: '<div>x</div>' }]]);
   });
 });
+
+ describe('Notes formatting guarantees', () => {
+  it('refuses native formatting requirements before any write', async () => {
+    await expect(svc.create({ title: 'T', text: '# H', requireNativeFormatting: true })).rejects.toThrow(/Native.*Nothing was created/);
+    expect(backend.created).toEqual([]);
+  });
+  it('reports the visual heading fallback explicitly', async () => {
+    expect((await svc.create({ title: 'T', text: '# H' })).formatting.nativeHeadings).toBe(false);
+  });
+  it('does not run emphasis matching inside link attributes or code placeholders', () => {
+    expect(markdownToHtml('[Docs](https://example.com/a_b_c) `x`')).toBe('<div><a href="https://example.com/a_b_c">Docs</a> <tt>x</tt></div>');
+    expect(markdownToHtml('\u00000\u0000')).not.toContain('<tt>');
+    expect(markdownToHtml('[**Docs** `code`](https://example.com/a_b_c)')).toBe('<div><a href="https://example.com/a_b_c"><b>Docs</b> <tt>code</tt></a></div>');
+  });
+ });

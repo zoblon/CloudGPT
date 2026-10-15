@@ -12,6 +12,7 @@ const folderName = z.string().min(1).max(100);
 export const createNoteSchema = z.strictObject({
   title: z.string().min(1).max(200),
   text: z.string().max(MAX_NOTE_CHARS).default('').describe('Text of the note as Markdown (default) or plain text. HTML in it is shown as text, never interpreted.'),
+  require_native_formatting: z.boolean().default(false).describe('If true, refuse creation: native heading styles cannot be guaranteed through Apple Notes scripting. Default uses visual HTML formatting.'),
   format: z.enum(['markdown', 'plain']).default('markdown'),
   folder: folderName.optional().describe('Name of the folder. If omitted: the default folder of the default account ("Notes").'),
   shared_folder: folderName.optional().describe('ONLY when deliberately writing into a SHARED folder: its exact name. Notes there appear immediately for other people. Without this, nothing is ever written to a shared folder.'),
@@ -122,14 +123,14 @@ export function registerNoteTools(server: McpServer, notes: NoteService, options
       title: 'Create note',
       description:
         'Creates ONE new note in the Apple Notes app (title as the first line, then the text as Markdown or plain text; HTML in the text is not interpreted). Without `folder` it goes into the default folder. ' +
-        'Existing notes are NEVER changed, moved or deleted by this connector (changing a note would destroy images, tables and formatting). A shared folder is only used when named in `shared_folder`.',
+        'Headings are visual HTML formatting, not native Notes paragraph styles. Set require_native_formatting to refuse this fallback. Existing notes are NEVER changed, moved or deleted by this connector (changing a note would destroy images, tables and formatting). A shared folder is only used when named in `shared_folder`.',
       inputSchema: createNoteSchema,
       outputSchema: dataOutputSchema,
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
     async (a) =>
       guarded('create_note', async () => {
-        const r = await notes.create({ title: a.title, text: a.text, format: a.format, folder: a.folder, sharedFolder: a.shared_folder });
+        const r = await notes.create({ title: a.title, text: a.text, format: a.format, folder: a.folder, sharedFolder: a.shared_folder, requireNativeFormatting: a.require_native_formatting });
         return dataResult({
           summary: `Note created in folder "${r.folder}".`,
           source: 'the note just created',

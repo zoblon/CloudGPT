@@ -133,7 +133,8 @@ export class NoteService {
     return { ...base, format: format === 'markdown' && n.html ? ('markdown' as const) : ('text' as const), page, text, ...(n.attachments.length ? { attachments: n.attachments.map((x) => clip(x, 200)) } : {}) };
   }
 
-  async create(a: { title: string; text: string; format?: 'markdown' | 'plain' | undefined; folder?: string | undefined; sharedFolder?: string | undefined }) {
+  async create(a: { title: string; text: string; format?: 'markdown' | 'plain' | undefined; folder?: string | undefined; sharedFolder?: string | undefined; requireNativeFormatting?: boolean | undefined }) {
+    if (a.requireNativeFormatting) throw new UserError('Native Title, Heading and Subheading styles cannot be guaranteed by the Apple Notes scripting interface. Nothing was created. Apply native styles in Apple Notes.');
     const title = a.title.replace(/\s+/g, ' ').trim();
     if (!title) throw new UserError('The title must not be empty. Please provide a title.');
     const html = noteHtml(title, a.text, a.format ?? 'markdown');
@@ -142,6 +143,6 @@ export class NoteService {
     // Permissions first: without a grant nothing is written.
     const grant = authorizeNoteCreate({ folders: folders as NoteFolderFacts[], defaultFolderId: defaultId, folder: a.folder?.trim() || undefined, sharedFolder: a.sharedFolder?.trim() || undefined });
     const made = await this.backend.create(grant, html);
-    return { id: made.id, title: clip(made.title, 300), folder: clip(made.folder, 100), shared: grant.shared };
+    return { id: made.id, title: clip(made.title, 300), folder: clip(made.folder, 100), shared: grant.shared, formatting: { nativeHeadings: false, note: 'HTML headings have visual formatting only. Apply native Title, Heading and Subheading styles in Apple Notes.' } };
   }
 }
