@@ -157,6 +157,6 @@ describe('create_note', () => {
     const runner: ScriptRunner = { async run<T>(s: AutomationScript, i: unknown): Promise<T> { seen.push([s.name, i]); return { id: 'x-coredata://a/ICNote/p1', title: 'T', folder: 'iClaude Test' } as T; } } as never;
     const grant = authorizeNoteCreate({ folders, folder: 'iClaude Test' });
     await new JxaNotes(runner).create(grant, '<div>x</div>');
-    expect(seen).toEqual([['notesCreate', { folderId: 'f2', folderName: 'iClaude Test', html: '<div>x</div>' }]]);
+    expect(seen).toEqual([['notesCreate', { folderId: 'f2', folderName: 'iClaude Test', shared: false, html: '<div>x</div>' }]]);
   });
 });

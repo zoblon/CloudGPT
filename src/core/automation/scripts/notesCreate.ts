@@ -17,6 +17,7 @@ function run(argv) {
     var name;
     try { name = folder.name(); } catch (e) { throw { code: 'FOLDER_NOT_FOUND', msg: 'The folder was not found.' }; }
     if (name !== input.folderName) throw { code: 'CHANGED', msg: 'The folder has changed in the meantime.' };
+    if (!!folder.shared() !== input.shared) throw { code: 'CHANGED', msg: 'The folder sharing state has changed.' };
     var note = app.Note({ body: String(input.html) });
     folder.notes.push(note);
     var id = note.id();
